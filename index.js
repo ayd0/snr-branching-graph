@@ -64,8 +64,6 @@ if (canvas.getContext) {
             }
         }
 
-        console.log(subjectState);
-
         selectedSubject = currentSelectedSubject;
 
         clearAll();
@@ -270,7 +268,6 @@ if (canvas.getContext) {
         ctx.stroke();
 
         ++numSteps[selectedSubject];
-        console.log(numSteps[selectedSubject] % 8);
         if (extended && resettable && !((numSteps[selectedSubject] - 1) % 8))
             softReset(false);
     };
@@ -290,7 +287,6 @@ if (canvas.getContext) {
 
     const hardReset = () => {
         ctx.reset();
-        console.log("hard reset");
 
         numSubjects = 0;
         selectedSubject = 0;
