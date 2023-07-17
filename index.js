@@ -42,7 +42,6 @@ if (canvas.getContext) {
         const currentSelectedSubject = selectedSubject;
         const currentNumSubjects = numSubjects;
         const currentNumSteps = numSteps.slice();
-        numSteps = currentNumSteps.slice();
         clickables = [];
         subjectState = [];
         textState = [];
