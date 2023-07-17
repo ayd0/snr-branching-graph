@@ -5,9 +5,6 @@ const btnReset = document.querySelector("#btn-reset");
 const btnSoftReset = document.querySelector("#btn-soft-reset");
 
 if (canvas.getContext) {
-    // TODO: Make subjects deletable
-    //       Make Steps deletable
-    //       Make Subjects Overflow
     const ctx = canvas.getContext("2d");
 
     const canvasBounds = {
@@ -32,14 +29,12 @@ if (canvas.getContext) {
     const subjectBoxLeft = buffer * 2;
     const subjectBoxLeftBuffer = subjectBox.width + buffer * 4;
 
-    // for mapping total area of sections
-    const subjectSectionWidth = branchLine + subjectBox.width;
-
     let numSubjects = 0;
     let selectedSubject;
     let numSteps = [];
     let clickables = [];
     let subjectState = [];
+    let textState = [];
 
     const softReset = () => {
         ctx.reset();
@@ -48,7 +43,9 @@ if (canvas.getContext) {
         const currentNumSubjects = numSubjects;
         const currentNumSteps = numSteps.slice();
         numSteps = currentNumSteps.slice();
+        clickables = [];
         subjectState = [];
+        textState = [];
 
         for (let i = 0; i < numSteps.length; ++i) {
             numSteps[i] = 0;
@@ -119,7 +116,6 @@ if (canvas.getContext) {
         );
     };
 
-    const clearAll = () => ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const createBottomLineConnector = (left, top) => {
         ctx.moveTo(left + subjectBox.width / 2, top + subjectBox.height);
@@ -181,6 +177,29 @@ if (canvas.getContext) {
         ctx.stroke();
     };
 
+    const persistText = (styles, text, left, top) => {
+        textState.push({
+            styles,
+            text,
+            left,
+            top,
+        });
+    };
+
+    const drawPersistedText = () => {
+        if (textState.length > 0) {
+            for (const text of textState) {
+                ctx.font = text.styles;
+                ctx.fillText(text.text, text.left, text.top);
+            }
+        }
+    }
+
+    const clearAll = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        drawPersistedText();
+    };
+
     const createSubjectBox = () => {
         const cumulativeExtensionOffset =
             (branchLine * 2 + stepBox.width) *
@@ -192,8 +211,6 @@ if (canvas.getContext) {
             subjectBoxLeftBuffer * numSubjects +
             cumulativeExtensionOffset;
         const top = subjectBoxTop - subjectBox.height / 2;
-
-        const subjectText = `Subject ${numSubjects}`;
 
         ctx.rect(left, top, subjectBox.width, subjectBox.height);
         createTopLineConnector(cumulativeExtensionOffset);
@@ -211,6 +228,13 @@ if (canvas.getContext) {
             subjectBox.width,
             subjectBox.height,
             numSubjects
+        );
+
+        persistText(
+            "15px serif",
+            `Subject ${numSubjects}`,
+            left + 5, // magic nonsense numbers will be updated
+            top + subjectBox.width / 4
         );
 
         clearAll();
@@ -264,6 +288,13 @@ if (canvas.getContext) {
             selectedSubject
         );
 
+        persistText(
+            "12px serif",
+            `Step ${numSteps[selectedSubject]}`,
+            left + 4, // magic nonsense numbers will be updated
+            top + stepBox.width / 6
+        );
+
         clearAll();
         ctx.stroke();
 
@@ -279,6 +310,7 @@ if (canvas.getContext) {
         // Top Line
         ctx.moveTo(buffer, buffer);
         ctx.lineTo(canvasBounds.width - buffer, buffer);
+        ctx.font = "20px serif";
 
         ctx.stroke();
     };
@@ -293,6 +325,7 @@ if (canvas.getContext) {
         numSteps = [];
         clickables = [];
         subjectState = [];
+        textState = [];
 
         initialize();
     };
