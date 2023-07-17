@@ -87,8 +87,6 @@ if (canvas.getContext) {
             height: height,
             subject: subject,
         });
-
-        console.log(clickables);
     };
 
     // handle clickables
@@ -141,9 +139,22 @@ if (canvas.getContext) {
         ctx.lineTo(left + branchLine + offsetLeft, top);
     };
 
+    const cycleColorScheme = () => {
+        const selector = (numSubjects) % 4;
+        const colorScheme = [
+            '#A3A1F4',
+            '#F2B9B9',
+            '#C1E27A',
+            '#EC98D9'
+        ]
+
+        return colorScheme[selector];
+    }
+
     const createSubjectState = () => {
         subjectState.push({
             extensions: 0,
+            color: cycleColorScheme()
         });
     };
 
@@ -257,12 +268,15 @@ if (canvas.getContext) {
             cumulativeExtensionOffset;
         const top = subjectBoxTop - subjectBox.height / 2;
 
+        createSubjectState();
+        const fillColor = subjectState[numSubjects].color;
+
         ctx.beginPath();
-        ctx.fillStyle = "#EDF0F3";
+        ctx.fillStyle = fillColor;
         ctx.fillRect(left, top, subjectBox.width, subjectBox.height);
 
         ctx.beginPath();
-        ctx.rect(left, top, subjectBox.width, subjectBox.height);
+        // ctx.rect(left, top, subjectBox.width, subjectBox.height);
 
         createTopLineConnector(cumulativeExtensionOffset);
         createBranchLine(
@@ -272,7 +286,6 @@ if (canvas.getContext) {
         );
         createBottomLineConnector(left, top);
 
-        createSubjectState();
         createClickable(
             left,
             top,
@@ -325,12 +338,14 @@ if (canvas.getContext) {
                 ? numSteps[selectedSubject] % 8
                 : numSteps[selectedSubject]) *
                 subjectBoxTop;
+        
+        const fillColor = subjectState[selectedSubject].color;
 
-        ctx.fillStyle = "#D9D9D9";
+        ctx.fillStyle = fillColor;
         ctx.fillRect(left, top, stepBox.width, stepBox.height);
 
         ctx.beginPath();
-        ctx.rect(left, top, stepBox.width, stepBox.height);
+        // ctx.rect(left, top, stepBox.width, stepBox.height);
 
         createBranchLine(
             left - branchLine,
