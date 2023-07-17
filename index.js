@@ -63,7 +63,6 @@ if (canvas.getContext) {
 
         selectedSubject = currentSelectedSubject;
 
-        clearAll();
         initialize();
     };
 
@@ -145,6 +144,9 @@ if (canvas.getContext) {
     };
 
     const extendSubjectSection = (subject) => {
+        // TK: DEV -> check if required
+        ctx.beginPath()
+
         let cumulativeExtensionOffset =
             (branchLine * 2 + stepBox.width) *
             (getCumulativeExtensions(subject) + subject);
@@ -187,18 +189,16 @@ if (canvas.getContext) {
     };
 
     const drawPersistedText = () => {
+        const text = textState[textState.length - 1];
         if (textState.length > 0) {
-            for (const text of textState) {
-                ctx.font = text.styles;
-                ctx.fillText(text.text, text.left, text.top);
-            }
+            ctx.beginPath()
+            ctx.font = text.styles;
+            ctx.fillStyle = "#000000";
+            ctx.fillText(text.text, text.left, text.top);
         }
     }
 
-    const clearAll = () => {
-        ctx.clearRect(0, 0, canvas.width, canvas.height)
-        drawPersistedText();
-    };
+    const clearAll = () => ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const createSubjectBox = () => {
         const cumulativeExtensionOffset =
@@ -212,7 +212,13 @@ if (canvas.getContext) {
             cumulativeExtensionOffset;
         const top = subjectBoxTop - subjectBox.height / 2;
 
+        ctx.beginPath();
+        ctx.fillStyle = "#EDF0F3"
+        ctx.fillRect(left, top, subjectBox.width, subjectBox.height);
+        
+        ctx.beginPath();
         ctx.rect(left, top, subjectBox.width, subjectBox.height);
+
         createTopLineConnector(cumulativeExtensionOffset);
         createBranchLine(
             subjectBoxLeft + subjectBoxLeftBuffer * numSubjects,
@@ -230,15 +236,15 @@ if (canvas.getContext) {
             numSubjects
         );
 
+        ctx.stroke();
+
         persistText(
             "15px serif",
             `Subject ${numSubjects}`,
             left + 5, // magic nonsense numbers will be updated
             top + subjectBox.width / 4
         );
-
-        clearAll();
-        ctx.stroke();
+        drawPersistedText();
 
         selectedSubject = numSubjects;
         ++numSubjects;
@@ -274,7 +280,12 @@ if (canvas.getContext) {
                 : numSteps[selectedSubject]) *
                 subjectBoxTop;
 
+        ctx.fillStyle = "#D9D9D9"
+        ctx.fillRect(left, top, stepBox.width, stepBox.height);
+
+        ctx.beginPath();
         ctx.rect(left, top, stepBox.width, stepBox.height);
+
         createBranchLine(
             left - branchLine,
             top + Math.ceil(subjectBox.height / 2) - 2 // magic number accounts for stupid floating point crap I don't know how to fix
@@ -288,19 +299,19 @@ if (canvas.getContext) {
             selectedSubject
         );
 
+        ctx.stroke();
+
         persistText(
             "12px serif",
             `Step ${numSteps[selectedSubject]}`,
             left + 4, // magic nonsense numbers will be updated
             top + stepBox.width / 6
         );
-
-        clearAll();
-        ctx.stroke();
+        drawPersistedText();
 
         ++numSteps[selectedSubject];
         if (extended && resettable && !((numSteps[selectedSubject] - 1) % 8))
-            softReset(false);
+            softReset();
     };
 
     btnAddSubject.addEventListener("click", () => createSubjectBox());
@@ -308,6 +319,8 @@ if (canvas.getContext) {
 
     const initialize = () => {
         // Top Line
+        ctx.beginPath();
+
         ctx.moveTo(buffer, buffer);
         ctx.lineTo(canvasBounds.width - buffer, buffer);
         ctx.font = "20px serif";
