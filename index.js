@@ -4,6 +4,8 @@ const btnAddStep = document.querySelector("#btn-add-step");
 const btnReset = document.querySelector("#btn-reset");
 const btnSoftReset = document.querySelector("#btn-soft-reset");
 
+// TODO: Fix clickables not registering properly on softReset()
+
 if (canvas.getContext) {
     const ctx = canvas.getContext("2d");
 
@@ -222,11 +224,14 @@ if (canvas.getContext) {
             totalExtendedDistance += state.extensions * sectionExtendedStep;
         }
 
+        /* 
+        // DEBUG
         ctx.beginPath();
         ctx.moveTo(buffer, 20);
         ctx.lineTo(totalExtendedDistance + (buffer * 2), 20);
         ctx.clearRect(buffer, 19, totalExtendedDistance + (buffer * 2), 2);
         ctx.stroke();
+        */
 
         extendCanvasSection();
     }
@@ -345,16 +350,8 @@ if (canvas.getContext) {
 
         ++numSteps[selectedSubject];
         if (extended && resettable && !((numSteps[selectedSubject] - 1) % 8)) {
+            console.log(totalExtendedDistance)
             calculateTotalExtendedDistance();
-            softReset();
-            if (
-                selectedSubject === numSubjects - 1 &&
-                canvas.width > initialBounds.width
-            ) {
-                calculateTotalExtendedDistance();
-                console.log("TEST");
-                initialize();
-            }
         }   
     };
 
