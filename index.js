@@ -7,7 +7,7 @@ const btnSoftReset = document.querySelector("#btn-soft-reset");
 if (canvas.getContext) {
     const ctx = canvas.getContext("2d");
 
-    const canvasBounds = {
+    const initialBounds = {
         height: canvas.height,
         width: canvas.width,
     };
@@ -29,6 +29,14 @@ if (canvas.getContext) {
     const subjectBoxLeft = buffer * 2;
     const subjectBoxLeftBuffer = subjectBox.width + buffer * 4;
 
+    // Used to calculate total width in a complete branch structure: secSub + secStep + secExtStep
+    //      -> For calculating top-line extensions
+    const sectionSubject = branchLine + subjectBox.width;
+    const sectionStep =
+        branchLine * 2 + subjectBox.width / 2 + stepBox.width - sectionSubject;
+    const sectionExtendedStep = branchLine * 2 + stepBox.width;
+
+    let totalExtendedDistance = 0;
     let numSubjects = 0;
     let selectedSubject;
     let numSteps = [];
@@ -114,10 +122,9 @@ if (canvas.getContext) {
         );
     };
 
-
     const createBottomLineConnector = (left, top) => {
         ctx.moveTo(left + subjectBox.width / 2, top + subjectBox.height);
-        ctx.lineTo(left + subjectBox.width / 2, canvasBounds.height);
+        ctx.lineTo(left + subjectBox.width / 2, initialBounds.height);
     };
 
     const createBranchLine = (left, top, offsetLeft) => {
@@ -144,7 +151,7 @@ if (canvas.getContext) {
 
     const extendSubjectSection = (subject) => {
         // TK: DEV -> check if required
-        ctx.beginPath()
+        ctx.beginPath();
 
         let cumulativeExtensionOffset =
             (branchLine * 2 + stepBox.width) *
@@ -173,7 +180,7 @@ if (canvas.getContext) {
             (stepBox.width + branchLine * 2) * subjectState[subject].extensions;
 
         ctx.lineTo(left, top);
-        ctx.lineTo(left, canvasBounds.height);
+        ctx.lineTo(left, initialBounds.height);
 
         ctx.stroke();
     };
@@ -190,11 +197,38 @@ if (canvas.getContext) {
     const drawPersistedText = () => {
         const text = textState[textState.length - 1];
         if (textState.length > 0) {
-            ctx.beginPath()
+            ctx.beginPath();
             ctx.font = text.styles;
             ctx.fillStyle = "#000000";
             ctx.fillText(text.text, text.left, text.top);
         }
+    };
+
+    const extendCanvasSection = () => {
+        if (totalExtendedDistance > canvas.width) {
+            canvas.width = totalExtendedDistance + buffer * 3;
+            softReset();
+        }
+    }
+
+    const calculateTotalExtendedDistance = () => {
+        // Total value of all subject sections + subject left offsets
+        totalExtendedDistance = numSubjects * sectionSubject;
+        totalExtendedDistance += (numSubjects - 1) * (subjectBoxLeftBuffer - sectionSubject);
+        // Last subject section's step
+        totalExtendedDistance += sectionStep;
+        // Total cumulative extensions
+        for (const state of subjectState) {
+            totalExtendedDistance += state.extensions * sectionExtendedStep;
+        }
+
+        ctx.beginPath();
+        ctx.moveTo(buffer, 20);
+        ctx.lineTo(totalExtendedDistance + (buffer * 2), 20);
+        ctx.clearRect(buffer, 19, totalExtendedDistance + (buffer * 2), 2);
+        ctx.stroke();
+
+        extendCanvasSection();
     }
 
     const clearAll = () => ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -212,9 +246,9 @@ if (canvas.getContext) {
         const top = subjectBoxTop - subjectBox.height / 2;
 
         ctx.beginPath();
-        ctx.fillStyle = "#EDF0F3"
+        ctx.fillStyle = "#EDF0F3";
         ctx.fillRect(left, top, subjectBox.width, subjectBox.height);
-        
+
         ctx.beginPath();
         ctx.rect(left, top, subjectBox.width, subjectBox.height);
 
@@ -247,6 +281,7 @@ if (canvas.getContext) {
 
         selectedSubject = numSubjects;
         ++numSubjects;
+        calculateTotalExtendedDistance();
         numSteps.push(0);
     };
 
@@ -279,7 +314,7 @@ if (canvas.getContext) {
                 : numSteps[selectedSubject]) *
                 subjectBoxTop;
 
-        ctx.fillStyle = "#D9D9D9"
+        ctx.fillStyle = "#D9D9D9";
         ctx.fillRect(left, top, stepBox.width, stepBox.height);
 
         ctx.beginPath();
@@ -309,8 +344,18 @@ if (canvas.getContext) {
         drawPersistedText();
 
         ++numSteps[selectedSubject];
-        if (extended && resettable && !((numSteps[selectedSubject] - 1) % 8))
+        if (extended && resettable && !((numSteps[selectedSubject] - 1) % 8)) {
+            calculateTotalExtendedDistance();
             softReset();
+            if (
+                selectedSubject === numSubjects - 1 &&
+                canvas.width > initialBounds.width
+            ) {
+                calculateTotalExtendedDistance();
+                console.log("TEST");
+                initialize();
+            }
+        }   
     };
 
     btnAddSubject.addEventListener("click", () => createSubjectBox());
@@ -321,7 +366,12 @@ if (canvas.getContext) {
         ctx.beginPath();
 
         ctx.moveTo(buffer, buffer);
-        ctx.lineTo(canvasBounds.width - buffer, buffer);
+        ctx.lineTo(
+            initialBounds.width > totalExtendedDistance
+                ? canvas.width
+                : totalExtendedDistance + buffer * 2,
+            buffer
+        );
         ctx.font = "20px serif";
 
         ctx.stroke();
