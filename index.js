@@ -5,6 +5,7 @@ const btnReset = document.querySelector("#btn-reset");
 const btnSoftReset = document.querySelector("#btn-soft-reset");
 
 // TODO: Fix clickables not registering properly on softReset()
+//       Found issue from scroll distance not adding to pageX/Y
 
 if (canvas.getContext) {
     const ctx = canvas.getContext("2d");
@@ -86,11 +87,16 @@ if (canvas.getContext) {
             height: height,
             subject: subject,
         });
+
+        console.log(clickables);
     };
 
     // handle clickables
     canvas.addEventListener("click", (e) => {
-        const x = e.pageX - canvas.offsetLeft;
+        const x =
+            e.pageX -
+            canvas.offsetLeft -
+            (Math.ceil(canvas.getBoundingClientRect().x) - canvas.offsetLeft);
         const y = e.pageY - canvas.offsetTop;
 
         if (clickables.length > 0) {
@@ -211,12 +217,13 @@ if (canvas.getContext) {
             canvas.width = totalExtendedDistance + buffer * 3;
             softReset();
         }
-    }
+    };
 
     const calculateTotalExtendedDistance = () => {
         // Total value of all subject sections + subject left offsets
         totalExtendedDistance = numSubjects * sectionSubject;
-        totalExtendedDistance += (numSubjects - 1) * (subjectBoxLeftBuffer - sectionSubject);
+        totalExtendedDistance +=
+            (numSubjects - 1) * (subjectBoxLeftBuffer - sectionSubject);
         // Last subject section's step
         totalExtendedDistance += sectionStep;
         // Total cumulative extensions
@@ -234,7 +241,7 @@ if (canvas.getContext) {
         */
 
         extendCanvasSection();
-    }
+    };
 
     const clearAll = () => ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -350,9 +357,8 @@ if (canvas.getContext) {
 
         ++numSteps[selectedSubject];
         if (extended && resettable && !((numSteps[selectedSubject] - 1) % 8)) {
-            console.log(totalExtendedDistance)
             calculateTotalExtendedDistance();
-        }   
+        }
     };
 
     btnAddSubject.addEventListener("click", () => createSubjectBox());
