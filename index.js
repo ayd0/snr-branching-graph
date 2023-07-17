@@ -4,8 +4,13 @@ const btnAddStep = document.querySelector("#btn-add-step");
 const btnReset = document.querySelector("#btn-reset");
 const btnSoftReset = document.querySelector("#btn-soft-reset");
 
-// TODO: Fix clickables not registering properly on softReset()
-//       Found issue from scroll distance not adding to pageX/Y
+// ==============================================================================
+// TODO: * handle anchoring text to elements, conditional abbreviations, etc.
+// -----   look into getting width of text, potentially monospace if neccessary
+// ----- * add configuration options for shadows, color, etc.
+// ----- * add CRUD operations for elements and state values 
+// ----- * fix issue with hardReset() extending subjects over subsequent subjects
+// ==============================================================================
 
 if (canvas.getContext) {
     const ctx = canvas.getContext("2d");
@@ -273,6 +278,9 @@ if (canvas.getContext) {
 
         ctx.beginPath();
         ctx.fillStyle = fillColor;
+        ctx.globalAlpha = 0.5;
+        ctx.fillRect(left + 2, top + 2, subjectBox.width, subjectBox.height);
+        ctx.globalAlpha = 1.0;
         ctx.fillRect(left, top, subjectBox.width, subjectBox.height);
 
         ctx.beginPath();
@@ -342,6 +350,9 @@ if (canvas.getContext) {
         const fillColor = subjectState[selectedSubject].color;
 
         ctx.fillStyle = fillColor;
+        ctx.globalAlpha = 0.5;
+        ctx.fillRect(left + 2, top + 2, stepBox.width, stepBox.height);
+        ctx.globalAlpha = 1.0;
         ctx.fillRect(left, top, stepBox.width, stepBox.height);
 
         ctx.beginPath();
