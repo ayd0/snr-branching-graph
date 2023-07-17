@@ -140,13 +140,13 @@ if (canvas.getContext) {
     };
 
     const cycleColorScheme = () => {
-        const selector = (numSubjects) % 4;
         const colorScheme = [
             '#A3A1F4',
             '#F2B9B9',
             '#C1E27A',
             '#EC98D9'
         ]
+        const selector = (numSubjects) % colorScheme.length;
 
         return colorScheme[selector];
     }
