@@ -252,7 +252,11 @@ if (canvas.getContext) {
         extendCanvasSection();
     };
 
-    const clearAll = () => ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const createBoxShadow = (fillStyle, opacity, left, top, width, height) => {
+        ctx.fillStyle = fillStyle;
+        ctx.globalAlpha = opacity;
+        ctx.fillRect(left + 2, top + 2, width, height);
+    }
 
     const createSubjectBox = () => {
         const cumulativeExtensionOffset =
@@ -269,10 +273,7 @@ if (canvas.getContext) {
         createSubjectState();
         const fillColor = subjectState[numSubjects].color;
 
-        ctx.beginPath();
-        ctx.fillStyle = fillColor;
-        ctx.globalAlpha = 0.5;
-        ctx.fillRect(left + 2, top + 2, subjectBox.width, subjectBox.height);
+        createBoxShadow(fillColor, 0.5, left, top, subjectBox.width, subjectBox.height);
         ctx.globalAlpha = 1.0;
         ctx.fillRect(left, top, subjectBox.width, subjectBox.height);
 
@@ -345,9 +346,7 @@ if (canvas.getContext) {
         
         const fillColor = subjectState[selectedSubject].color;
 
-        ctx.fillStyle = fillColor;
-        ctx.globalAlpha = 0.5;
-        ctx.fillRect(left + 2, top + 2, stepBox.width, stepBox.height);
+        createBoxShadow(fillColor, 0.5, left, top, stepBox.width, stepBox.height);
         ctx.globalAlpha = 1.0;
         ctx.fillRect(left, top, stepBox.width, stepBox.height);
 
