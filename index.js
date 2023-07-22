@@ -468,14 +468,18 @@ if (canvas.getContext) {
 
     // Eventually delete requests will be handled on specific step by UUID when merged to website
     const deleteSubject = () => {
-        numSteps.splice(selectedSubject, 1);
-        numSubjects--;
-        softReset();
+        if (numSubjects > 0) {
+            numSteps.splice(selectedSubject, 1);
+            numSubjects--;
+            softReset();
+        }
     }
 
     const deleteStep = () => {
-        numSteps[selectedSubject]--;
-        softReset();
+        if (numSteps[selectedSubject] > 0) {
+            numSteps[selectedSubject]--;
+            softReset();
+        }
     }
 
     btnAddSubject.addEventListener("click", () => createSubjectBox());
