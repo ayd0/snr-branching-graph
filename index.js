@@ -9,7 +9,6 @@ const btnSoftReset = document.querySelector("#btn-soft-reset");
 // -----   look into getting width of text, potentially monospace if neccessary
 // ----- * add configuration options for shadows, color, etc.
 // ----- * add CRUD operations for elements and state values 
-// ----- * fix issue with hardReset() extending subjects over subsequent subjects
 // ==============================================================================
 
 if (canvas.getContext) {
@@ -51,6 +50,15 @@ if (canvas.getContext) {
     let clickables = [];
     let subjectState = [];
     let textState = [];
+
+    const logAll = () => {
+        console.table({
+            'totalExtendedDistance : canvas.width': `${totalExtendedDistance} : ${canvas.width}`,
+            numSubjects: numSubjects,
+            selectedSubject: selectedSubject,
+            numSteps: numSteps,
+        });
+    }
 
     const softReset = () => {
         ctx.reset();
@@ -233,7 +241,7 @@ if (canvas.getContext) {
             canvas.width = totalExtendedDistance + buffer * 3;
             softReset();
         }
-    };
+    }
 
     const calculateTotalExtendedDistance = () => {
         // Total value of all subject sections + subject left offsets
@@ -246,15 +254,6 @@ if (canvas.getContext) {
         for (const state of subjectState) {
             totalExtendedDistance += state.extensions * sectionExtendedStep;
         }
-
-        /* 
-        // DEBUG
-        ctx.beginPath();
-        ctx.moveTo(buffer, 20);
-        ctx.lineTo(totalExtendedDistance + (buffer * 2), 20);
-        ctx.clearRect(buffer, 19, totalExtendedDistance + (buffer * 2), 2);
-        ctx.stroke();
-        */
 
         extendCanvasSection();
     };
@@ -319,11 +318,14 @@ if (canvas.getContext) {
     };
 
     const createStepBox = (resettable) => {
+        let sessionExtended = false;
+        // ^ extended within the current function call
         if (resettable === undefined) resettable = true;
         if (numSteps[selectedSubject] > 0 && !(numSteps[selectedSubject] % 8)) {
             // For deleteStepBox, same principle but remove extension and rerender
             subjectState[selectedSubject].extensions++;
             extendSubjectSection(selectedSubject);
+            sessionExtended = true;
         }
         const cumulativeExtensionOffset =
             (branchLine * 2 + stepBox.width) *
@@ -332,6 +334,7 @@ if (canvas.getContext) {
             subjectState[selectedSubject].extensions *
             (branchLine * 2 + stepBox.width);
         let extended = extensionOffset > 0 ? true : false;
+        console.log(extended)
 
         const left =
             subjectBoxLeft +
@@ -385,6 +388,8 @@ if (canvas.getContext) {
         if (extended && resettable && !((numSteps[selectedSubject] - 1) % 8)) {
             calculateTotalExtendedDistance();
         }
+
+        if (sessionExtended && resettable) softReset();
     };
 
     btnAddSubject.addEventListener("click", () => createSubjectBox());
@@ -401,7 +406,6 @@ if (canvas.getContext) {
                 : totalExtendedDistance + buffer * 2,
             buffer
         );
-        ctx.font = "20px serif";
 
         ctx.stroke();
     };
@@ -411,12 +415,14 @@ if (canvas.getContext) {
     const hardReset = () => {
         ctx.reset();
 
+        totalExtendedDistance = 0;
         numSubjects = 0;
-        selectedSubject = 0;
+        selectedSubject = undefined;
         numSteps = [];
         clickables = [];
         subjectState = [];
         textState = [];
+        canvas.width = initialBounds.width;
 
         initialize();
     };
