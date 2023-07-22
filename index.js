@@ -1,6 +1,8 @@
 const canvas = document.querySelector("canvas");
 const btnAddSubject = document.querySelector("#btn-add-subject");
 const btnAddStep = document.querySelector("#btn-add-step");
+const btnDeleteSubject = document.querySelector("#btn-delete-subject");
+const btnDeleteStep = document.querySelector("#btn-delete-step");
 const btnReset = document.querySelector("#btn-reset");
 const btnSoftReset = document.querySelector("#btn-soft-reset");
 
@@ -464,8 +466,23 @@ if (canvas.getContext) {
         if (sessionExtended && resettable) softReset();
     };
 
+    // Eventually delete requests will be handled on specific step by UUID when merged to website
+    const deleteSubject = () => {
+        numSteps.splice(selectedSubject, 1);
+        numSubjects--;
+        softReset();
+    }
+
+    const deleteStep = () => {
+        numSteps[selectedSubject]--;
+        softReset();
+    }
+
     btnAddSubject.addEventListener("click", () => createSubjectBox());
     btnAddStep.addEventListener("click", () => createStepBox());
+    btnDeleteSubject.addEventListener("click", () => deleteSubject());
+    // update step clickable handling for uuid
+    btnDeleteStep.addEventListener("click", () => deleteStep());
 
     const initialize = () => {
         // Top Line
