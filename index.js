@@ -9,10 +9,13 @@ const btnSoftReset = document.querySelector("#btn-soft-reset");
 // -----   look into getting width of text, potentially monospace if neccessary
 // ----- * add configuration options for shadows, color, etc.
 // ----- * add CRUD operations for elements and state values 
+// ----- * fix issue with only first subject's calls to createStepBox() extending topLine while being last subject box
 // ==============================================================================
 
 if (canvas.getContext) {
     const ctx = canvas.getContext("2d");
+
+    canvas.width = 200;
 
     const initialBounds = {
         height: canvas.height,
@@ -50,15 +53,6 @@ if (canvas.getContext) {
     let clickables = [];
     let subjectState = [];
     let textState = [];
-
-    const logAll = () => {
-        console.table({
-            'totalExtendedDistance : canvas.width': `${totalExtendedDistance} : ${canvas.width}`,
-            numSubjects: numSubjects,
-            selectedSubject: selectedSubject,
-            numSteps: numSteps,
-        });
-    }
 
     const softReset = () => {
         ctx.reset();
@@ -334,7 +328,6 @@ if (canvas.getContext) {
             subjectState[selectedSubject].extensions *
             (branchLine * 2 + stepBox.width);
         let extended = extensionOffset > 0 ? true : false;
-        console.log(extended)
 
         const left =
             subjectBoxLeft +
