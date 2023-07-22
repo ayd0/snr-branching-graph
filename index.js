@@ -6,10 +6,11 @@ const btnSoftReset = document.querySelector("#btn-soft-reset");
 
 // ==============================================================================
 // TODO: * handle anchoring text to elements, conditional abbreviations, etc.
-// -----   look into getting width of text, potentially monospace if neccessary
+// ------- * look into getting width of text, potentially monospace if neccessary
 // ----- * add configuration options for shadows, color, etc.
-// ----- * add CRUD operations for elements and state values 
+// ----- * add CRUD operations for elements and state values
 // ----- * fix issue with only first subject's calls to createStepBox() extending topLine while being last subject box
+// ----- * make boxes not look like Windows XP
 // ==============================================================================
 
 if (canvas.getContext) {
@@ -25,11 +26,13 @@ if (canvas.getContext) {
     const subjectBox = {
         height: 30,
         width: 70,
+        bezierControl: 30
     };
 
     const stepBox = {
         height: 25,
         width: 90,
+        bezierControl: 10
     };
 
     const buffer = 10;
@@ -84,9 +87,9 @@ if (canvas.getContext) {
     };
 
     const createClickable = (left, top, width, height, subject) => {
-        // TODO: handle clickables as clusters of items for greater selection
-        //       hovering subjects highlights all steps
-        //       hovering step highlights only step, etc...
+        // TODO: * handle clickables as clusters of items for greater selection
+        //------ * hovering subjects highlights all steps
+        //------ * hovering step highlights only step, etc...
         clickables.push({
             top: top,
             left: left,
@@ -147,21 +150,16 @@ if (canvas.getContext) {
     };
 
     const cycleColorScheme = () => {
-        const colorScheme = [
-            '#A3A1F4',
-            '#F2B9B9',
-            '#C1E27A',
-            '#EC98D9'
-        ]
-        const selector = (numSubjects) % colorScheme.length;
+        const colorScheme = ["#A3A1F4", "#F2B9B9", "#C1E27A", "#EC98D9"];
+        const selector = numSubjects % colorScheme.length;
 
         return colorScheme[selector];
-    }
+    };
 
     const createSubjectState = () => {
         subjectState.push({
             extensions: 0,
-            color: cycleColorScheme()
+            color: cycleColorScheme(),
         });
     };
 
@@ -235,7 +233,7 @@ if (canvas.getContext) {
             canvas.width = totalExtendedDistance + buffer * 3;
             softReset();
         }
-    }
+    };
 
     const calculateTotalExtendedDistance = () => {
         // Total value of all subject sections + subject left offsets
@@ -252,11 +250,29 @@ if (canvas.getContext) {
         extendCanvasSection();
     };
 
+    const createCurvedCap = (isLeft, fillStyle, control, left, top, width, height) => {
+        if(isLeft) {
+          width = 0;  
+          control -= (control * 2);
+        }
+        ctx.beginPath();
+        ctx.fillStyle = fillStyle;
+        ctx.bezierCurveTo(
+            left + width,
+            top,
+            left + width + control,
+            (((top + height) - top) / 2) + top,
+            left + width, 
+            top + height
+        );
+        ctx.fill();
+    }
+
     const createBoxShadow = (fillStyle, opacity, left, top, width, height) => {
         ctx.fillStyle = fillStyle;
         ctx.globalAlpha = opacity;
         ctx.fillRect(left + 2, top + 2, width, height);
-    }
+    };
 
     const createSubjectBox = () => {
         const cumulativeExtensionOffset =
@@ -273,7 +289,14 @@ if (canvas.getContext) {
         createSubjectState();
         const fillColor = subjectState[numSubjects].color;
 
-        createBoxShadow(fillColor, 0.5, left, top, subjectBox.width, subjectBox.height);
+        createBoxShadow(
+            fillColor,
+            0.5,
+            left,
+            top,
+            subjectBox.width,
+            subjectBox.height
+        );
         ctx.globalAlpha = 1.0;
         ctx.fillRect(left, top, subjectBox.width, subjectBox.height);
 
@@ -322,6 +345,7 @@ if (canvas.getContext) {
             extendSubjectSection(selectedSubject);
             sessionExtended = true;
         }
+
         const cumulativeExtensionOffset =
             (branchLine * 2 + stepBox.width) *
             getCumulativeExtensions(selectedSubject);
@@ -343,20 +367,76 @@ if (canvas.getContext) {
                 ? numSteps[selectedSubject] % 8
                 : numSteps[selectedSubject]) *
                 subjectBoxTop;
-        
+
         const fillColor = subjectState[selectedSubject].color;
 
-        createBoxShadow(fillColor, 0.5, left, top, stepBox.width, stepBox.height);
-        ctx.globalAlpha = 1.0;
-        ctx.fillRect(left, top, stepBox.width, stepBox.height);
-
         ctx.beginPath();
-        // ctx.rect(left, top, stepBox.width, stepBox.height);
-
         createBranchLine(
             left - branchLine,
             top + Math.ceil(subjectBox.height / 2) - 2 // magic number accounts for stupid floating point crap I don't know how to fix
         );
+        ctx.stroke();
+
+        // hacky implementation of shadows and curved caps, revise
+
+        createBoxShadow(
+            fillColor,
+            0.5,
+            left,
+            top,
+            stepBox.width,
+            stepBox.height
+        );
+
+       createCurvedCap(
+           false,
+           fillColor,
+           stepBox.bezierControl,
+           left + 2,
+           top + 2,
+           stepBox.width,
+           stepBox.height
+       );
+       createCurvedCap(
+           true,
+           fillColor,
+           stepBox.bezierControl,
+           left + 2,
+           top + 2,
+           stepBox.width,
+           stepBox.height
+       );
+
+       ctx.globalAlpha = 1.0;
+       createCurvedCap(
+           false,
+           fillColor,
+           stepBox.bezierControl,
+           left,
+           top,
+           stepBox.width,
+           stepBox.height
+       );
+       createCurvedCap(
+           true,
+           fillColor,
+           stepBox.bezierControl,
+           left,
+           top,
+           stepBox.width,
+           stepBox.height
+       );
+
+       ctx.fillRect(left, top, stepBox.width, stepBox.height);
+
+       ctx.beginPath();
+
+        /*
+        createBranchLine(
+            left - branchLine,
+            top + Math.ceil(subjectBox.height / 2) - 2 // magic number accounts for stupid floating point crap I don't know how to fix
+        );
+        */
 
         createClickable(
             left,
