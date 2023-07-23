@@ -28,13 +28,13 @@ if (canvas.getContext) {
     const subjectBox = {
         height: 30,
         width: 70,
-        bezierControl: 30
+        bezierControl: 30,
     };
 
     const stepBox = {
         height: 25,
         width: 90,
-        bezierControl: 10
+        bezierControl: 10,
     };
 
     const buffer = 10;
@@ -50,6 +50,8 @@ if (canvas.getContext) {
     const sectionStep =
         branchLine * 2 + subjectBox.width / 2 + stepBox.width - sectionSubject;
     const sectionExtendedStep = branchLine * 2 + stepBox.width;
+
+    const boxShadowOffset = 2;
 
     let totalExtendedDistance = 0;
     let numSubjects = 0;
@@ -252,10 +254,18 @@ if (canvas.getContext) {
         extendCanvasSection();
     };
 
-    const createCurvedCap = (isLeft, fillStyle, control, left, top, width, height) => {
-        if(isLeft) {
-          width = 0;  
-          control -= (control * 2);
+    const createCurvedCap = (
+        isLeft,
+        fillStyle,
+        control,
+        left,
+        top,
+        width,
+        height
+    ) => {
+        if (isLeft) {
+            width = 0;
+            control -= control * 2;
         }
         ctx.beginPath();
         ctx.fillStyle = fillStyle;
@@ -263,17 +273,63 @@ if (canvas.getContext) {
             left + width,
             top,
             left + width + control,
-            (((top + height) - top) / 2) + top,
-            left + width, 
+            (top + height - top) / 2 + top,
+            left + width,
             top + height
         );
         ctx.fill();
-    }
+    };
+
+    const createStepBoxCaps = (fillStyle, left, top) => {
+        ctx.globalAlpha = 0.5;
+        createCurvedCap(
+            false,
+            fillStyle,
+            stepBox.bezierControl,
+            left + boxShadowOffset,
+            top + boxShadowOffset,
+            stepBox.width,
+            stepBox.height
+        );
+        createCurvedCap(
+            true,
+            fillStyle,
+            stepBox.bezierControl,
+            left + boxShadowOffset,
+            top + boxShadowOffset,
+            stepBox.width,
+            stepBox.height
+        );
+        ctx.globalAlpha = 1.0;
+        createCurvedCap(
+            false,
+            fillStyle,
+            stepBox.bezierControl,
+            left,
+            top,
+            stepBox.width,
+            stepBox.height
+        );
+        createCurvedCap(
+            true,
+            fillStyle,
+            stepBox.bezierControl,
+            left,
+            top,
+            stepBox.width,
+            stepBox.height
+        );
+    };
 
     const createBoxShadow = (fillStyle, opacity, left, top, width, height) => {
         ctx.fillStyle = fillStyle;
         ctx.globalAlpha = opacity;
-        ctx.fillRect(left + 2, top + 2, width, height);
+        ctx.fillRect(
+            left + boxShadowOffset,
+            top + boxShadowOffset,
+            width,
+            height
+        );
     };
 
     const createSubjectBox = () => {
@@ -390,48 +446,11 @@ if (canvas.getContext) {
             stepBox.height
         );
 
-       createCurvedCap(
-           false,
-           fillColor,
-           stepBox.bezierControl,
-           left + 2,
-           top + 2,
-           stepBox.width,
-           stepBox.height
-       );
-       createCurvedCap(
-           true,
-           fillColor,
-           stepBox.bezierControl,
-           left + 2,
-           top + 2,
-           stepBox.width,
-           stepBox.height
-       );
+        createStepBoxCaps(fillColor, left, top);
 
-       ctx.globalAlpha = 1.0;
-       createCurvedCap(
-           false,
-           fillColor,
-           stepBox.bezierControl,
-           left,
-           top,
-           stepBox.width,
-           stepBox.height
-       );
-       createCurvedCap(
-           true,
-           fillColor,
-           stepBox.bezierControl,
-           left,
-           top,
-           stepBox.width,
-           stepBox.height
-       );
+        ctx.fillRect(left, top, stepBox.width, stepBox.height);
 
-       ctx.fillRect(left, top, stepBox.width, stepBox.height);
-
-       ctx.beginPath();
+        ctx.beginPath();
 
         createClickable(
             left,
@@ -472,7 +491,7 @@ if (canvas.getContext) {
             }
             softReset();
         }
-    }
+    };
 
     const deleteStep = () => {
         if (numSteps[selectedSubject] > 0) {
@@ -480,7 +499,7 @@ if (canvas.getContext) {
             canvas.width = totalExtendedDistance + buffer * 3;
             softReset();
         }
-    }
+    };
 
     btnAddSubject.addEventListener("click", () => createSubjectBox());
     btnAddStep.addEventListener("click", () => createStepBox());
