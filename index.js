@@ -1,11 +1,3 @@
-const canvas = document.querySelector("canvas");
-const btnAddSubject = document.querySelector("#btn-add-subject");
-const btnAddStep = document.querySelector("#btn-add-step");
-const btnDeleteSubject = document.querySelector("#btn-delete-subject");
-const btnDeleteStep = document.querySelector("#btn-delete-step");
-const btnReset = document.querySelector("#btn-reset");
-const btnSoftReset = document.querySelector("#btn-soft-reset");
-
 // ==============================================================================
 // TODO: * handle anchoring text to elements, conditional abbreviations, etc.
 // ------- * look into getting width of text, potentially monospace if neccessary
@@ -13,16 +5,23 @@ const btnSoftReset = document.querySelector("#btn-soft-reset");
 // ----- * add CRUD operations for elements and state values
 // ----- * fix issue with only first subject's calls to createStepBox() extending 
 // ------- topLine while being last subject box
-// ----- * make boxes not look like Windows XP
+// ----- * make boxes not look like Windows XP(?)
 // ==============================================================================
 // ==============================================================================
 // WEBI: * use arc instead of bezier curves for box caps
 // ----- * integrate text handling as subject/step state
 // ----- * integrate color handling as global signal
+// ----- * focus on modularity with easily changed scaling variables for when site
+// ------- is eventually rewritten
 // ==============================================================================
+
+const canvas = document.querySelector("canvas");
+
 if (canvas.getContext) {
     const ctx = canvas.getContext("2d");
 
+
+    // bounds declerations
     canvas.width = 200;
 
     const initialBounds = {
@@ -42,13 +41,12 @@ if (canvas.getContext) {
         bezierControl: 10,
     };
 
+    // distance modifiers
     const buffer = 10;
     const branchLine = buffer;
-
     const subjectBoxTop = buffer * 4;
     const subjectBoxLeft = buffer * 2;
     const subjectBoxLeftBuffer = subjectBox.width + buffer * 4;
-
     // Used to calculate total width in a complete branch structure: secSub + secStep + secExtStep
     //      -> For calculating top-line extensions
     const sectionSubject = branchLine + subjectBox.width;
@@ -56,6 +54,7 @@ if (canvas.getContext) {
         branchLine * 2 + subjectBox.width / 2 + stepBox.width - sectionSubject;
     const sectionExtendedStep = branchLine * 2 + stepBox.width;
 
+    // style modifiers
     const boxShadowOffset = 2;
 
     let totalExtendedDistance = 0;
@@ -95,6 +94,21 @@ if (canvas.getContext) {
         initialize();
     };
 
+    const hardReset = () => {
+        ctx.reset();
+
+        totalExtendedDistance = 0;
+        numSubjects = 0;
+        selectedSubject = undefined;
+        numSteps = [];
+        clickables = [];
+        subjectState = [];
+        textState = [];
+        canvas.width = initialBounds.width;
+
+        initialize();
+    };
+
     const createClickable = (left, top, width, height, subject) => {
         // TODO: * handle clickables as clusters of items for greater selection
         //------ * hovering subjects highlights all steps
@@ -109,7 +123,7 @@ if (canvas.getContext) {
     };
 
     // handle clickables
-    canvas.addEventListener("click", (e) => {
+    const handleClickables = (e) => {
         const x =
             e.pageX -
             canvas.offsetLeft -
@@ -131,7 +145,7 @@ if (canvas.getContext) {
         }
 
         console.log(`X: ${x}, Y: ${y}`);
-    });
+    }
 
     const createTopLineConnector = (offsetLeft) => {
         ctx.moveTo(
@@ -163,13 +177,6 @@ if (canvas.getContext) {
         const selector = numSubjects % colorScheme.length;
 
         return colorScheme[selector];
-    };
-
-    const createSubjectState = () => {
-        subjectState.push({
-            extensions: 0,
-            color: cycleColorScheme(),
-        });
     };
 
     const getCumulativeExtensions = (subject) => {
@@ -218,25 +225,6 @@ if (canvas.getContext) {
         ctx.stroke();
     };
 
-    const persistText = (styles, text, left, top) => {
-        textState.push({
-            styles,
-            text,
-            left,
-            top,
-        });
-    };
-
-    const drawPersistedText = () => {
-        const text = textState[textState.length - 1];
-        if (textState.length > 0) {
-            ctx.beginPath();
-            ctx.font = text.styles;
-            ctx.fillStyle = "#000000";
-            ctx.fillText(text.text, text.left, text.top);
-        }
-    };
-
     const extendCanvasSection = () => {
         if (totalExtendedDistance > canvas.width) {
             canvas.width = totalExtendedDistance + buffer * 3;
@@ -257,6 +245,25 @@ if (canvas.getContext) {
         }
 
         extendCanvasSection();
+    };
+
+    const persistText = (styles, text, left, top) => {
+        textState.push({
+            styles,
+            text,
+            left,
+            top,
+        });
+    };
+
+    const drawPersistedText = () => {
+        const text = textState[textState.length - 1];
+        if (textState.length > 0) {
+            ctx.beginPath();
+            ctx.font = text.styles;
+            ctx.fillStyle = "#000000";
+            ctx.fillText(text.text, text.left, text.top);
+        }
     };
 
     const createCurvedCap = (
@@ -335,6 +342,13 @@ if (canvas.getContext) {
             width,
             height
         );
+    };
+
+    const createSubjectState = () => {
+        subjectState.push({
+            extensions: 0,
+            color: cycleColorScheme(),
+        });
     };
 
     const createSubjectBox = () => {
@@ -506,12 +520,6 @@ if (canvas.getContext) {
         }
     };
 
-    btnAddSubject.addEventListener("click", () => createSubjectBox());
-    btnAddStep.addEventListener("click", () => createStepBox());
-    btnDeleteSubject.addEventListener("click", () => deleteSubject());
-    // update step clickable handling for uuid
-    btnDeleteStep.addEventListener("click", () => deleteStep());
-
     const initialize = () => {
         // Top Line
         ctx.beginPath();
@@ -527,23 +535,19 @@ if (canvas.getContext) {
         ctx.stroke();
     };
 
+    const btnSoftReset = document.querySelector("#btn-soft-reset");
+    const btnReset = document.querySelector("#btn-reset");
+    const btnAddSubject = document.querySelector("#btn-add-subject");
+    const btnAddStep = document.querySelector("#btn-add-step");
+    const btnDeleteSubject = document.querySelector("#btn-delete-subject");
+    const btnDeleteStep = document.querySelector("#btn-delete-step");
+
+    canvas.addEventListener("click", (e) => handleClickables(e));
+    btnAddSubject.addEventListener("click", () => createSubjectBox());
+    btnAddStep.addEventListener("click", () => createStepBox());
+    btnDeleteSubject.addEventListener("click", () => deleteSubject());
+    btnDeleteStep.addEventListener("click", () => deleteStep());
     btnSoftReset.addEventListener("click", () => softReset());
-
-    const hardReset = () => {
-        ctx.reset();
-
-        totalExtendedDistance = 0;
-        numSubjects = 0;
-        selectedSubject = undefined;
-        numSteps = [];
-        clickables = [];
-        subjectState = [];
-        textState = [];
-        canvas.width = initialBounds.width;
-
-        initialize();
-    };
-
     btnReset.addEventListener("click", () => hardReset());
 
     initialize();
