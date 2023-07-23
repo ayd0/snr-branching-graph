@@ -464,7 +464,12 @@ if (canvas.getContext) {
         if (numSubjects > 0) {
             numSteps.splice(selectedSubject, 1);
             numSubjects--;
-            canvas.width = totalExtendedDistance;
+            canvas.width = totalExtendedDistance + buffer * 3;
+            if (selectedSubject === numSubjects) {
+                selectedSubject = numSubjects - 1;
+            } else if (selectedSubject > 1) {
+                selectedSubject = selectedSubject - 1;
+            }
             softReset();
         }
     }
@@ -472,7 +477,7 @@ if (canvas.getContext) {
     const deleteStep = () => {
         if (numSteps[selectedSubject] > 0) {
             numSteps[selectedSubject]--;
-            canvas.width = totalExtendedDistance;
+            canvas.width = totalExtendedDistance + buffer * 3;
             softReset();
         }
     }
