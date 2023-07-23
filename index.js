@@ -11,10 +11,15 @@ const btnSoftReset = document.querySelector("#btn-soft-reset");
 // ------- * look into getting width of text, potentially monospace if neccessary
 // ----- * add configuration options for shadows, color, etc.
 // ----- * add CRUD operations for elements and state values
-// ----- * fix issue with only first subject's calls to createStepBox() extending topLine while being last subject box
+// ----- * fix issue with only first subject's calls to createStepBox() extending 
+// ------- topLine while being last subject box
 // ----- * make boxes not look like Windows XP
 // ==============================================================================
-
+// ==============================================================================
+// WEBI: * use arc instead of bezier curves for box caps
+// ----- * integrate text handling as subject/step state
+// ----- * integrate color handling as global signal
+// ==============================================================================
 if (canvas.getContext) {
     const ctx = canvas.getContext("2d");
 
