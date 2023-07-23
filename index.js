@@ -433,13 +433,6 @@ if (canvas.getContext) {
 
        ctx.beginPath();
 
-        /*
-        createBranchLine(
-            left - branchLine,
-            top + Math.ceil(subjectBox.height / 2) - 2 // magic number accounts for stupid floating point crap I don't know how to fix
-        );
-        */
-
         createClickable(
             left,
             top,
@@ -471,6 +464,7 @@ if (canvas.getContext) {
         if (numSubjects > 0) {
             numSteps.splice(selectedSubject, 1);
             numSubjects--;
+            canvas.width = totalExtendedDistance;
             softReset();
         }
     }
@@ -478,6 +472,7 @@ if (canvas.getContext) {
     const deleteStep = () => {
         if (numSteps[selectedSubject] > 0) {
             numSteps[selectedSubject]--;
+            canvas.width = totalExtendedDistance;
             softReset();
         }
     }
